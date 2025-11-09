@@ -1,0 +1,28 @@
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.marc {
+  height: 40vw;
+  width: 40vw;
+  border: 1px solid gray;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.box {
+  height: 40px;
+  width: 40px;
+  background: red;
+  transition: transform 0.2s;
+}
+
+.box2 {
+  height: 40px;
+  width: 40px;
+  background-color: blue;
+}
