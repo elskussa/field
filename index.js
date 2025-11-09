@@ -11,12 +11,15 @@ let y = 0;
 let paso = 2;
 
 let keyChanges = [false/*w*/, false/*a*/, false/*s*/, false/*d*/];
+let keyOrder = ['a','w','s','d',];
 const moves = {
     'w':() => y -= paso,
     'a':() => x -= paso,
     's':() => y += paso,
     'd':() => x += paso
 }
+
+console.log(moves[1])
 
 document.addEventListener('keydown', (event) => {
     if(event.key == 'w') {
@@ -50,21 +53,26 @@ document.addEventListener('keydown', (event) => {
 
 function updateMove() {
     for(i = 0; i < keyChanges.length; i++) {
-        console.log(keyChanges[i]);
         if(keyChanges[i] == true) {
-            moves[i];
-        }
-    }
+            moves[keyOrder[i]]();
+        };
+    };
+    box.style.transform = `translate(${x}px, ${y}px)`;
 };
 
 document.addEventListener('keyup', (event) => {
     // hacer una función que reitere en la lista de teclas para ver cuál están siendo presionadas y así ejecutar el movimiento en la que está siendo presionada
-    updateMove();
     console.log(`se ha dejado de presionar ${event.key}`)
-    if(event.key) {
+    if(event.key == 'w') {
         keyChanges[0] = false;
+    } else if (event.key == 'a') {
         keyChanges[1] = false;
+    } else if (event.key == 's') {
         keyChanges[2] = false;
+    } else if (event.key == 'd') {
         keyChanges[3] = false;
     }
+
+    updateMove();
+    console.log(keyChanges)
 });
