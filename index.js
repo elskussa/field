@@ -2,77 +2,57 @@ const box = document.querySelector('.box');
 const marc = document.querySelector('.marc');
 
 const boxSize = box.getBoundingClientRect();
-const marcSize = box.getBoundingClientRect();
-
-console.log(boxSize, marcSize);
+const marcSize = marc.getBoundingClientRect();
+const maxAreaX = (marcSize.width - boxSize.width) / 2;
+const maxAreaY = (marcSize.height - boxSize.height) / 2;
 
 let x = 0;
 let y = 0;
-let paso = 2;
+let step = 2;
 
 let keyChanges = [false/*w*/, false/*a*/, false/*s*/, false/*d*/];
-let keyOrder = ['a','w','s','d',];
-const moves = {
-    'w':() => y -= paso,
-    'a':() => x -= paso,
-    's':() => y += paso,
-    'd':() => x += paso
-}
 
-console.log(moves[1])
+let lastTime = performance.now();
 
-document.addEventListener('keydown', (event) => {
-    if(event.key == 'w') {
-        keyChanges[0] = true;
-        //y -= paso esto es lo mismo que hacer esto y = y - paso
-        console.log('estás pulsando la w')
-    } else if(event.key == 'a') {
-        keyChanges[1] = true;
-        //x -= paso esto es lo mismo que hacer esto y = y - paso
-        console.log('estás pulsando la a')
-    } else if(event.key == 's') {
-        keyChanges[2] = true;
-        //y += paso esto es lo mismo que hacer esto y = y - paso
-        console.log('estás pulsando la s')
-    } else if(event.key == 'd') {
-        keyChanges[3] = true;
-        //x += paso esto es lo mismo que hacer esto y = y - paso
-        console.log('estás pulsando la d')
+function gameLoop() {
+    moveX = 0;
+    moveY = 0;
+    
+    // Calcular movimiento basado en teclas presionadas
+    if(keyChanges[0] && y > -maxAreaY) {moveY -= step} // w
+    if(keyChanges[2] && y < maxAreaY) {moveY += step, console.log("estás moviendote a la dirección s")} // s
+    if(keyChanges[1] && x > -maxAreaX) {moveX -= step, console.log("estás moviendote a la dirección a")} // a
+    if(keyChanges[3] && x < maxAreaX) {moveX += step, console.log("estás moviendote a la dirección d")} // d
+    
+    // Normalizar movimiento diagonal
+    if (moveX !== 0 && moveY !== 0) {
+        moveX *= 0.7071;
+        moveY *= 0.7071;
     };
 
-    if(keyChanges[0] && keyChanges[1]) {y -= paso; x -= paso;}
-    else if(keyChanges[0] && keyChanges[3]) {y -= paso; x += paso;}
-    else if(keyChanges[2] && keyChanges[1]) {y += paso; x -= paso;}
-    else if(keyChanges[2] && keyChanges[3]) {y += paso; x += paso;}
-    else {
-        moves[event.key]();
-    };
+    x += moveX;
+    y += moveY;
+
+    console.log(x)
     
     box.style.transform = `translate(${x}px, ${y}px)`;
+    requestAnimationFrame(gameLoop);
+}
+
+// Iniciar el game loop
+gameLoop();
+
+document.addEventListener('keydown', (event) => {
+    if(event.key == 'w') {keyChanges[0] = true; /*console.log('estás pulsando la w')*/ }
+        else if(event.key == 'a') {keyChanges[1] = true; /*console.log('estás pulsando la a')*/ }
+        else if(event.key == 's') {keyChanges[2] = true; /*console.log('estás pulsando la s')*/ }
+        else if(event.key == 'd') {keyChanges[3] = true; /*console.log('estás pulsando la d')*/ }
 });
 
-function updateMove() {
-    for(i = 0; i < keyChanges.length; i++) {
-        if(keyChanges[i] == true) {
-            moves[keyOrder[i]]();
-        };
-    };
-    box.style.transform = `translate(${x}px, ${y}px)`;
-};
-
 document.addEventListener('keyup', (event) => {
-    // hacer una función que reitere en la lista de teclas para ver cuál están siendo presionadas y así ejecutar el movimiento en la que está siendo presionada
-    console.log(`se ha dejado de presionar ${event.key}`)
-    if(event.key == 'w') {
-        keyChanges[0] = false;
-    } else if (event.key == 'a') {
-        keyChanges[1] = false;
-    } else if (event.key == 's') {
-        keyChanges[2] = false;
-    } else if (event.key == 'd') {
-        keyChanges[3] = false;
-    }
-
-    updateMove();
-    console.log(keyChanges)
+    //console.log(`se ha dejado de presionar ${event.key}`)
+    if(event.key == 'w') {keyChanges[0] = false;} 
+    else if (event.key == 'a') {keyChanges[1] = false;}
+    else if (event.key == 's') {keyChanges[2] = false;}
+    else if (event.key == 'd') {keyChanges[3] = false;}
 });
