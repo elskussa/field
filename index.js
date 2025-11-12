@@ -1,3 +1,24 @@
+const box = document.querySelector('.box');
+const box2 = document.querySelector('.box2');
+const marc = document.querySelector('.marc');
+const boxSize = box.getBoundingClientRect();
+const box2Size = box2.getBoundingClientRect();
+const marcSize = marc.getBoundingClientRect();
+const maxAreaX = (marcSize.width - boxSize.width) / 2;
+const maxAreaY = (marcSize.height - boxSize.height) / 2;
+
+let x = 0;
+let y = 0;
+let step = 2;
+
+let keyChanges = [false/*w*/, false/*a*/, false/*s*/, false/*d*/];
+
+let lastTime = performance.now();
+
+
+let lastStep = [];
+let counterColision = 0;
+
 function gameLoop() {
     let moveX = 0;
     let moveY = 0;
@@ -25,7 +46,8 @@ function gameLoop() {
         boxSizeProbe.left < boxSize2Probe.right && 
         boxSizeProbe.top < boxSize2Probe.bottom && 
         boxSizeProbe.bottom > boxSize2Probe.top) {
-
+        x = lastStep[0]
+        y = lastStep[1]
         /*for(i = 0; i < keyChanges.length; i++) {
             keyChanges[i] = false;
         }*/
@@ -35,18 +57,20 @@ function gameLoop() {
             counterColision ++;
             console.log(counterColision);
             console.log(lastStep);
-            x = lastStep[0]
-            y = lastStep[1]
             console.log(lastStep)
         }
 
-        if(x < 0 && counterColision == 1) {
-            box.style.transform = `translate(${x-=200}px, ${y-=200}px)`;
+        if(x < 0) {
+            x -= 20;
             console.log("para la izquierda")
+        } else if (x > 0) {
+            x +=20;
         }
 
         console.log("estás chocando");
         console.log(lastStep)
+
+        box.style.transform = `translate(${x}px, ${y}px)`;
 
     } else {
         box.style.transform = `translate(${x}px, ${y}px)`;
@@ -54,3 +78,21 @@ function gameLoop() {
     
     requestAnimationFrame(gameLoop);
 }
+
+//iniciar el game loop
+gameLoop();
+
+document.addEventListener('keydown', (event) => {
+    if(event.key == 'w') {keyChanges[0] = true; /*console.log('estás pulsando la w')*/ }
+    else if(event.key == 'a') {keyChanges[1] = true; /*console.log('estás pulsando la a')*/ }
+    else if(event.key == 's') {keyChanges[2] = true; /*console.log('estás pulsando la s')*/ }
+    else if(event.key == 'd') {keyChanges[3] = true; /*console.log('estás pulsando la d')*/ }
+});
+
+document.addEventListener('keyup', (event) => {
+    //console.log(`se ha dejado de presionar ${event.key}`)
+    if(event.key == 'w') {keyChanges[0] = false;} 
+    else if (event.key == 'a') {keyChanges[1] = false;}
+    else if (event.key == 's') {keyChanges[2] = false;}
+    else if (event.key == 'd') {keyChanges[3] = false;}
+});
