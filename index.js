@@ -1,30 +1,14 @@
-const box = document.querySelector('.box');
-const marc = document.querySelector('.marc');
-
-const boxSize = box.getBoundingClientRect();
-const marcSize = marc.getBoundingClientRect();
-const maxAreaX = (marcSize.width - boxSize.width) / 2;
-const maxAreaY = (marcSize.height - boxSize.height) / 2;
-
-let x = 0;
-let y = 0;
-let step = 2;
-
-let keyChanges = [false/*w*/, false/*a*/, false/*s*/, false/*d*/];
-
-let lastTime = performance.now();
-
 function gameLoop() {
-    moveX = 0;
-    moveY = 0;
+    let moveX = 0;
+    let moveY = 0;
     
-    // Calcular movimiento basado en teclas presionadas
+    //calcular movimiento basado en teclas presionadas
     if(keyChanges[0] && y > -maxAreaY) {moveY -= step} // w
-    if(keyChanges[2] && y < maxAreaY) {moveY += step, console.log("estás moviendote a la dirección s")} // s
-    if(keyChanges[1] && x > -maxAreaX) {moveX -= step, console.log("estás moviendote a la dirección a")} // a
-    if(keyChanges[3] && x < maxAreaX) {moveX += step, console.log("estás moviendote a la dirección d")} // d
+    if(keyChanges[2] && y < maxAreaY) {moveY += step} // s
+    if(keyChanges[1] && x > -maxAreaX) {moveX -= step} // a
+    if(keyChanges[3] && x < maxAreaX) {moveX += step} // d
     
-    // Normalizar movimiento diagonal
+    //normalizar movimiento diagonal
     if (moveX !== 0 && moveY !== 0) {
         moveX *= 0.7071;
         moveY *= 0.7071;
@@ -33,26 +17,40 @@ function gameLoop() {
     x += moveX;
     y += moveY;
 
-    console.log(x)
+    const boxSizeProbe = box.getBoundingClientRect();
+    //console.log(boxSizeProbe.left)
+    const boxSize2Probe = box2.getBoundingClientRect();
+    //console.log(boxSize2Probe.right)
+    if(boxSizeProbe.right > boxSize2Probe.left && 
+        boxSizeProbe.left < boxSize2Probe.right && 
+        boxSizeProbe.top < boxSize2Probe.bottom && 
+        boxSizeProbe.bottom > boxSize2Probe.top) {
+
+        /*for(i = 0; i < keyChanges.length; i++) {
+            keyChanges[i] = false;
+        }*/
+        //console.log(`estos son tus últimos pasos ${lastStep}`)
+        if(lastStep.length < 2 && counterColision < 1) {
+            lastStep.push(x,y);
+            counterColision ++;
+            console.log(counterColision);
+            console.log(lastStep);
+            x = lastStep[0]
+            y = lastStep[1]
+            console.log(lastStep)
+        }
+
+        if(x < 0 && counterColision == 1) {
+            box.style.transform = `translate(${x-=200}px, ${y-=200}px)`;
+            console.log("para la izquierda")
+        }
+
+        console.log("estás chocando");
+        console.log(lastStep)
+
+    } else {
+        box.style.transform = `translate(${x}px, ${y}px)`;
+    };
     
-    box.style.transform = `translate(${x}px, ${y}px)`;
     requestAnimationFrame(gameLoop);
 }
-
-// Iniciar el game loop
-gameLoop();
-
-document.addEventListener('keydown', (event) => {
-    if(event.key == 'w') {keyChanges[0] = true; /*console.log('estás pulsando la w')*/ }
-        else if(event.key == 'a') {keyChanges[1] = true; /*console.log('estás pulsando la a')*/ }
-        else if(event.key == 's') {keyChanges[2] = true; /*console.log('estás pulsando la s')*/ }
-        else if(event.key == 'd') {keyChanges[3] = true; /*console.log('estás pulsando la d')*/ }
-});
-
-document.addEventListener('keyup', (event) => {
-    //console.log(`se ha dejado de presionar ${event.key}`)
-    if(event.key == 'w') {keyChanges[0] = false;} 
-    else if (event.key == 'a') {keyChanges[1] = false;}
-    else if (event.key == 's') {keyChanges[2] = false;}
-    else if (event.key == 'd') {keyChanges[3] = false;}
-});
