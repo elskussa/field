@@ -4,6 +4,7 @@ const marc = document.querySelector('.marc');
 const boxSize = box.getBoundingClientRect();
 const box2Size = box2.getBoundingClientRect();
 const marcSize = marc.getBoundingClientRect();
+const notices = document.querySelector('.notices');
 
 let x = 0;
 let y = 0;
@@ -12,9 +13,14 @@ let step = 2;
 let dataGameJSON = '';
 
 document.addEventListener('DOMContentLoaded', () => {
-    x = parseInt(localStorage.getItem('posX'));
-    y = parseInt(localStorage.getItem('posY'));
-    console.log()
+
+    const dataSaved = JSON.parse(localStorage.getItem('dataGame'))
+    if(dataSaved && dataSaved.pos) {
+        x = dataSaved.pos.posSavedX;
+        y = dataSaved.pos.posSavedy;
+        console.log('datos cargados')
+    }
+
 });
 
 function saveData() {
@@ -31,7 +37,7 @@ function saveData() {
 let keyChanges = [false/*w*/, false/*a*/, false/*s*/, false/*d*/];
 
 function gameLoop() {
-
+    
     const boxSizeProbe = box.getBoundingClientRect();
     const boxSize2Probe = box2.getBoundingClientRect();
     const marcSize2 = marc.getBoundingClientRect();
@@ -85,7 +91,6 @@ function gameLoop() {
         boxSizeProbe.left + moveX < boxSize2Probe.right && 
         boxSizeProbe.top + moveY < boxSize2Probe.bottom && 
         boxSizeProbe.bottom + moveY > boxSize2Probe.top) {
-
         console.log("colisionas");
 
     } else {
