@@ -4,24 +4,49 @@ const marc = document.querySelector('.marc');
 const boxSize = box.getBoundingClientRect();
 const box2Size = box2.getBoundingClientRect();
 const marcSize = marc.getBoundingClientRect();
-const maxAreaX = (marcSize.width - boxSize.width) / 2;
-const maxAreaY = (marcSize.height - boxSize.height) / 2;
 
 let x = 0;
 let y = 0;
 let step = 2;
 
+let dataGameJSON = '';
+
+document.addEventListener('DOMContentLoaded', () => {
+    x = parseInt(localStorage.getItem('posX'));
+    y = parseInt(localStorage.getItem('posY'));
+    console.log()
+});
+
+function saveData() {
+    const data = {
+        pos : {
+            posSavedx : x,
+            posSavedy : y
+        }
+    };
+    dataGameJSON = JSON.stringify(data)
+    localStorage.setItem('dataGame', dataGameJSON);
+};
+
 let keyChanges = [false/*w*/, false/*a*/, false/*s*/, false/*d*/];
 
-let lastTime = performance.now();
-
-
-let lastStep = [];
-let counterColision = 0;
-
 function gameLoop() {
+
+    const boxSizeProbe = box.getBoundingClientRect();
+    const boxSize2Probe = box2.getBoundingClientRect();
+    const marcSize2 = marc.getBoundingClientRect();
+    const maxAreaX = (marcSize2.width - boxSizeProbe.width) / 2;
+    const maxAreaY = (marcSize2.height - boxSizeProbe.height) / 2;
+
     let moveX = 0;
     let moveY = 0;
+ 
+    if(localStorage.getItem('dataGame')) {
+        let lastGameData = localStorage.getItem('dataGame');
+        let GameData = JSON.parse(lastGameData)
+        x = GameData.pos.posSavedx;
+        y = GameData.pos.posSavedy;
+    }
     
     //calcular movimiento basado en teclas presionadas
     if(keyChanges[0] && y > -maxAreaY) {moveY -= step} // w
@@ -35,47 +60,41 @@ function gameLoop() {
         moveY *= 0.7071;
     };
 
-    x += moveX;
-    y += moveY;
+    //x += moveX;
+    //y += moveY;
 
-    const boxSizeProbe = box.getBoundingClientRect();
-    //console.log(boxSizeProbe.left)
-    const boxSize2Probe = box2.getBoundingClientRect();
-    //console.log(boxSize2Probe.right)
-    if(boxSizeProbe.right > boxSize2Probe.left && 
+    //sistema de repulsión
+    /*if(boxSizeProbe.right > boxSize2Probe.left && 
         boxSizeProbe.left < boxSize2Probe.right && 
         boxSizeProbe.top < boxSize2Probe.bottom && 
         boxSizeProbe.bottom > boxSize2Probe.top) {
-        x = lastStep[0]
-        y = lastStep[1]
-        /*for(i = 0; i < keyChanges.length; i++) {
-            keyChanges[i] = false;
-        }*/
-        //console.log(`estos son tus últimos pasos ${lastStep}`)
-        if(lastStep.length < 2 && counterColision < 1) {
-            lastStep.push(x,y);
-            counterColision ++;
-            console.log(counterColision);
-            console.log(lastStep);
-            console.log(lastStep)
+
+        if(moveX > 0){//izquierda
+            x -= 45;
+        } if (moveX < 0 ){//derecha
+            x += 45;
+        } else if (moveY < 0) {//subiendo
+            y +=45;
+        } else if (moveY > 0) {//bajando
+            y -= 45;
         }
 
-        if(x < 0) {
-            x -= 20;
-            console.log("para la izquierda")
-        } else if (x > 0) {
-            x +=20;
-        }
+    }*/
 
-        console.log("estás chocando");
-        console.log(lastStep)
+    if(boxSizeProbe.right + moveX > boxSize2Probe.left && 
+        boxSizeProbe.left + moveX < boxSize2Probe.right && 
+        boxSizeProbe.top + moveY < boxSize2Probe.bottom && 
+        boxSizeProbe.bottom + moveY > boxSize2Probe.top) {
 
-        box.style.transform = `translate(${x}px, ${y}px)`;
+        console.log("colisionas");
 
     } else {
-        box.style.transform = `translate(${x}px, ${y}px)`;
-    };
+        x += moveX;
+        y += moveY;
+    }
     
+    marc.style.transform = `translate(${-x}px, ${-y}px)`;
+    saveData()
     requestAnimationFrame(gameLoop);
 }
 
@@ -83,14 +102,13 @@ function gameLoop() {
 gameLoop();
 
 document.addEventListener('keydown', (event) => {
-    if(event.key == 'w') {keyChanges[0] = true; /*console.log('estás pulsando la w')*/ }
-    else if(event.key == 'a') {keyChanges[1] = true; /*console.log('estás pulsando la a')*/ }
-    else if(event.key == 's') {keyChanges[2] = true; /*console.log('estás pulsando la s')*/ }
-    else if(event.key == 'd') {keyChanges[3] = true; /*console.log('estás pulsando la d')*/ }
+    if(event.key == 'w') {keyChanges[0] = true;}
+    else if(event.key == 'a') {keyChanges[1] = true;}
+    else if(event.key == 's') {keyChanges[2] = true;}
+    else if(event.key == 'd') {keyChanges[3] = true;}
 });
 
 document.addEventListener('keyup', (event) => {
-    //console.log(`se ha dejado de presionar ${event.key}`)
     if(event.key == 'w') {keyChanges[0] = false;} 
     else if (event.key == 'a') {keyChanges[1] = false;}
     else if (event.key == 's') {keyChanges[2] = false;}
