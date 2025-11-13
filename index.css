@@ -3,6 +3,7 @@ body {
   justify-content: center;
   align-items: center;
   height: 100vh;
+  background-color: rgb(32, 42, 58);
 }
 
 .marc {
@@ -10,6 +11,13 @@ body {
   height: 40vw;
   width: 40vw;
   border: 1px solid gray;
+  box-shadow: 0px 0px 10px;
+}
+
+.notices {
+  display: none;
+  position: absolute;
+  top: 30vw;
 }
 
 .box {
@@ -20,10 +28,9 @@ body {
 }
 
 .box2 {
-  display: none;
   height: 40px;
   width: 40px;
-  background-color: blue;
-
+  background-color: black;
+  margin-top: 50%;
+  margin-left: 50%;
 }
-
