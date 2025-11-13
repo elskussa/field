@@ -37,7 +37,7 @@ function saveData() {
 let keyChanges = [false/*w*/, false/*a*/, false/*s*/, false/*d*/];
 
 function gameLoop() {
-    
+
     const boxSizeProbe = box.getBoundingClientRect();
     const boxSize2Probe = box2.getBoundingClientRect();
     const marcSize2 = marc.getBoundingClientRect();
@@ -52,6 +52,7 @@ function gameLoop() {
         let GameData = JSON.parse(lastGameData)
         x = GameData.pos.posSavedx;
         y = GameData.pos.posSavedy;
+
     }
     
     //calcular movimiento basado en teclas presionadas
@@ -107,15 +108,19 @@ function gameLoop() {
 gameLoop();
 
 document.addEventListener('keydown', (event) => {
-    if(event.key == 'w') {keyChanges[0] = true;}
-    else if(event.key == 'a') {keyChanges[1] = true;}
-    else if(event.key == 's') {keyChanges[2] = true;}
-    else if(event.key == 'd') {keyChanges[3] = true;}
+    const key = event.key.toLowerCase()
+    if(key === 'arrowup' || 'arrowleft' || 'arrowdown' || 'arrowright') {event.preventDefault()}
+    if(key === 'w' || key === 'arrowup') {keyChanges[0] = true;}
+    else if(key === 'a' || key === 'arrowleft') {keyChanges[1] = true;}
+    else if(key === 's' || key === 'arrowdown') {keyChanges[2] = true;}
+    else if(key === 'd' || key === 'arrowright') {keyChanges[3] = true;}
 });
 
 document.addEventListener('keyup', (event) => {
-    if(event.key == 'w') {keyChanges[0] = false;} 
-    else if (event.key == 'a') {keyChanges[1] = false;}
-    else if (event.key == 's') {keyChanges[2] = false;}
-    else if (event.key == 'd') {keyChanges[3] = false;}
+    const key = event.key.toLowerCase()
+    if(key === 'arrowup' || 'arrowleft' || 'arrowdown' || 'arrowright') {event.preventDefault()}
+    if(key === 'w' || key == 'arrowup') {keyChanges[0] = false;} 
+    else if (key === 'a' || key === 'arrowleft') {keyChanges[1] = false;}
+    else if (key === 's' || key === 'arrowdown') {keyChanges[2] = false;}
+    else if (key === 'd' || key === 'arrowright') {keyChanges[3] = false;}
 });
