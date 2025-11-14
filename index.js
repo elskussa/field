@@ -1,29 +1,39 @@
+//se declaran los elementos de el DOM
 const box = document.querySelector('.box');
 const box2 = document.querySelector('.box2');
 const marc = document.querySelector('.marc');
 const boxSize = box.getBoundingClientRect();
 const box2Size = box2.getBoundingClientRect();
 const marcSize = marc.getBoundingClientRect();
+console.log(marcSize)
 const notices = document.querySelector('.notices');
+const square = document.querySelectorAll('.square');
 
+//se declaran coordenadas de los ejes y cantidad de pasos
 let x = 0;
 let y = 0;
 let step = 2;
 
+//se declara la variable que va a guardar los datos de el mundo
 let dataGameJSON = '';
 
 document.addEventListener('DOMContentLoaded', () => {
-
+    //aquí se cargan los datos de el mundo
+    mapConstruction()
     const dataSaved = JSON.parse(localStorage.getItem('dataGame'))
+    
     if(dataSaved && dataSaved.pos) {
         x = dataSaved.pos.posSavedX;
         y = dataSaved.pos.posSavedy;
-        console.log('datos cargados')
+        console.log('datos cargados');
+
     }
 
 });
 
+//función que guarda los datos de forma continua
 function saveData() {
+
     const data = {
         pos : {
             posSavedx : x,
@@ -32,10 +42,36 @@ function saveData() {
     };
     dataGameJSON = JSON.stringify(data)
     localStorage.setItem('dataGame', dataGameJSON);
+
+};
+
+function mapConstruction() {
+    let tileIndex = 0;
+    let squareIndex = 4;
+    for(s=0; s < squareIndex; s++) {
+        for(i = 0; i < 49; i++) {
+            const tile = document.createElement('div');
+            tile.className = `tile-${tileIndex}`;
+            tile.style.height = '55px';
+            tile.style.width = '55px';
+            //tile.style.border = '1px solid gray'; esto añade tamaño al tile, lo que ocasiona que se desborde del marc
+            tile.style.outline = '1px solid gray';
+            tile.style.display = 'flex';
+            tile.style.justifyContent = 'center';
+            tile.style.alignItems = 'center';
+
+            square[s].appendChild(tile)
+            tileIndex++;
+        };
+    };
+    const box2Tile = document.querySelector('.tile-0')
+    box2Tile.appendChild(box2)
+
 };
 
 let keyChanges = [false/*w*/, false/*a*/, false/*s*/, false/*d*/];
 
+//función que actualiza los datos por cada frame
 function gameLoop() {
 
     const boxSizeProbe = box.getBoundingClientRect();
@@ -53,7 +89,7 @@ function gameLoop() {
         x = GameData.pos.posSavedx;
         y = GameData.pos.posSavedy;
 
-    }
+    };
     
     //calcular movimiento basado en teclas presionadas
     if(keyChanges[0] && y > -maxAreaY) {moveY -= step} // w
@@ -65,10 +101,8 @@ function gameLoop() {
     if (moveX !== 0 && moveY !== 0) {
         moveX *= 0.7071;
         moveY *= 0.7071;
-    };
 
-    //x += moveX;
-    //y += moveY;
+    };
 
     //sistema de repulsión
     /*if(boxSizeProbe.right > boxSize2Probe.left && 
@@ -87,40 +121,68 @@ function gameLoop() {
         }
 
     }*/
+    
+    //costante de colisión
+    const colision = 
+        boxSizeProbe.right + (moveX + 2) > boxSize2Probe.left && 
+        boxSizeProbe.left + (moveX -2) < boxSize2Probe.right && 
+        boxSizeProbe.top + (moveY - 2) < boxSize2Probe.bottom && 
+        boxSizeProbe.bottom + (moveY + 2) > boxSize2Probe.top;
 
-    if(boxSizeProbe.right + moveX > boxSize2Probe.left && 
-        boxSizeProbe.left + moveX < boxSize2Probe.right && 
-        boxSizeProbe.top + moveY < boxSize2Probe.bottom && 
-        boxSizeProbe.bottom + moveY > boxSize2Probe.top) {
+    if(colision) {
+        notices.style.display = 'block';
         console.log("colisionas");
-
+        //aquí se puede meter un if el cual te permita moverte unos px más para así se quede activo el "colision" y poder acceder a inventario si lo hay
     } else {
+        notices.style.display = 'none';
         x += moveX;
         y += moveY;
-    }
+
+    };
     
     marc.style.transform = `translate(${-x}px, ${-y}px)`;
     saveData()
     requestAnimationFrame(gameLoop);
-}
+
+};
 
 //iniciar el game loop
 gameLoop();
 
+//evento que detecta si una tecla ha sido presionada
 document.addEventListener('keydown', (event) => {
-    const key = event.key.toLowerCase()
-    if(key === 'arrowup' || 'arrowleft' || 'arrowdown' || 'arrowright') {event.preventDefault()}
+
+    const key = event.key.toLowerCase();
+    if(key === 'arrowup' ||
+        'arrowleft' ||
+        'arrowdown' ||
+        'arrowright'
+    ) {
+        event.preventDefault();
+    };
+
     if(key === 'w' || key === 'arrowup') {keyChanges[0] = true;}
     else if(key === 'a' || key === 'arrowleft') {keyChanges[1] = true;}
     else if(key === 's' || key === 'arrowdown') {keyChanges[2] = true;}
-    else if(key === 'd' || key === 'arrowright') {keyChanges[3] = true;}
+    else if(key === 'd' || key === 'arrowright') {keyChanges[3] = true;};
+
 });
 
+//evento que detecta si una tecla ha dejado de ser presionada
 document.addEventListener('keyup', (event) => {
-    const key = event.key.toLowerCase()
-    if(key === 'arrowup' || 'arrowleft' || 'arrowdown' || 'arrowright') {event.preventDefault()}
+
+    const key = event.key.toLowerCase();
+    if(key === 'arrowup' ||
+        'arrowleft' ||
+        'arrowdown' ||
+        'arrowright'
+    ) {
+        event.preventDefault();
+    };
+
     if(key === 'w' || key == 'arrowup') {keyChanges[0] = false;} 
     else if (key === 'a' || key === 'arrowleft') {keyChanges[1] = false;}
     else if (key === 's' || key === 'arrowdown') {keyChanges[2] = false;}
-    else if (key === 'd' || key === 'arrowright') {keyChanges[3] = false;}
+    else if (key === 'd' || key === 'arrowright') {keyChanges[3] = false;};
+
 });
