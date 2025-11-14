@@ -2,12 +2,10 @@
 const box = document.querySelector('.box');
 const box2 = document.querySelector('.box2');
 const marc = document.querySelector('.marc');
-const boxSize = box.getBoundingClientRect();
-const box2Size = box2.getBoundingClientRect();
 const marcSize = marc.getBoundingClientRect();
-console.log(marcSize)
 const notices = document.querySelector('.notices');
 const square = document.querySelectorAll('.square');
+console.log(marcSize);
 
 //se declaran coordenadas de los ejes y cantidad de pasos
 let x = 0;
@@ -16,6 +14,53 @@ let step = 2;
 
 //se declara la variable que va a guardar los datos de el mundo
 let dataGameJSON = '';
+
+let grassCounter = 0;
+let treeCounter = 0;
+let tileCounter = 0;
+
+let entities = {
+    box: box2,
+    grass: [],
+    bush: [],
+    tree: [],
+    collidable: [],
+
+    createGrass() {
+
+        const grassElement = document.createElement('div');
+        grassElement.className = `grass${grassCounter}`;
+        grassElement.style.height = '100%';
+        grassElement.style.width = '100%';
+        grassElement.style.backgroundColor = 'rgba(0, 226, 75, 1)';
+        grassElement.style.display = 'flex';
+        grassElement.style.justifyContent = 'center';
+        grassElement.style.alignItems = 'center';
+        
+        grassCounter++;
+        document.querySelector(`.tile-${tileCounter}`).appendChild(grassElement);
+        tileCounter++;
+        this.grass.push(grassElement);
+    },
+
+    createTree() {
+        const treeElement = document.createElement('div');
+        treeElement.className = `tree${treeCounter}`;
+        treeElement.style.height = '100%';
+        treeElement.style.width = '100%';
+        treeElement.style.backgroundColor = 'brown';
+        treeElement.style.display = 'flex';
+        treeElement.style.justifyContent = 'center';
+        treeElement.style.alignItems = 'center';
+        treeElement.style.zIndex = '1'
+
+        treeCounter++;
+        document.querySelector('.grass149').appendChild(treeElement)
+        this.collidable.push(treeElement);
+        this.tree.push(treeElement);
+    },
+};
+//entities.collidable.push(entities.box)
 
 document.addEventListener('DOMContentLoaded', () => {
     //aquí se cargan los datos de el mundo
@@ -55,30 +100,52 @@ function mapConstruction() {
             tile.style.height = '55px';
             tile.style.width = '55px';
             //tile.style.border = '1px solid gray'; esto añade tamaño al tile, lo que ocasiona que se desborde del marc
-            tile.style.outline = '1px solid gray';
+            //tile.style.outline = '1px solid gray';
+            tile.style.border = 'none';
+            tile.style.outline = 'none';
             tile.style.display = 'flex';
             tile.style.justifyContent = 'center';
             tile.style.alignItems = 'center';
 
             square[s].appendChild(tile)
             tileIndex++;
+            entities.createGrass()
         };
     };
-    const box2Tile = document.querySelector('.tile-0')
+    const box2Tile = document.querySelector('.grass0');
     box2Tile.appendChild(box2)
+    entities.createTree()
 
 };
+
+function colliding(box, movex, movey) {
+    const collidList = entities.collidable;
+    for (i = 0; i < collidList.length; i++) {
+        const collidableObject = collidList[i];
+        const rect = collidableObject.getBoundingClientRect();
+
+        const isColliding = 
+        box.right + (movex + 2) > rect.left && 
+        box.left + (movex - 2) < rect.right && 
+        box.top + (movey - 2) < rect.bottom && 
+        box.bottom + (movey + 2) > rect.top
+
+        if(isColliding) return true;
+    }
+    return false;
+}
+
 
 let keyChanges = [false/*w*/, false/*a*/, false/*s*/, false/*d*/];
 
 //función que actualiza los datos por cada frame
 function gameLoop() {
 
-    const boxSizeProbe = box.getBoundingClientRect();
-    const boxSize2Probe = box2.getBoundingClientRect();
+    const boxSize = box.getBoundingClientRect();
+    const box2Size = box2.getBoundingClientRect();
     const marcSize2 = marc.getBoundingClientRect();
-    const maxAreaX = (marcSize2.width - boxSizeProbe.width) / 2;
-    const maxAreaY = (marcSize2.height - boxSizeProbe.height) / 2;
+    const maxAreaX = (marcSize2.width - boxSize.width) / 2;
+    const maxAreaY = (marcSize2.height - boxSize.height) / 2;
 
     let moveX = 0;
     let moveY = 0;
@@ -121,24 +188,39 @@ function gameLoop() {
         }
 
     }*/
+
+    const collision = colliding(boxSize, moveX, moveY);
     
     //costante de colisión
-    const colision = 
+    /*const collid = 
         boxSizeProbe.right + (moveX + 2) > boxSize2Probe.left && 
         boxSizeProbe.left + (moveX -2) < boxSize2Probe.right && 
         boxSizeProbe.top + (moveY - 2) < boxSize2Probe.bottom && 
         boxSizeProbe.bottom + (moveY + 2) > boxSize2Probe.top;
 
-    if(colision) {
+    if(collision) { // hay que hacer ostro sistema diferente, que funcione igual pero con rebote, no sirve este
         notices.style.display = 'block';
         console.log("colisionas");
         //aquí se puede meter un if el cual te permita moverte unos px más para así se quede activo el "colision" y poder acceder a inventario si lo hay
     } else {
         notices.style.display = 'none';
+        notices.innerHTML = 'presiona E para acceder al inventario'
         x += moveX;
         y += moveY;
 
-    };
+    };*/
+
+    if(collision) {
+        notices.style.display = 'block';
+        console.log("colisionas");
+        notices.innerHTML = 'presiona E para acceder al inventario'
+        //x += moveX;
+        //y += moveY;
+    } else {
+        notices.style.display = 'none';
+        x += moveX;
+        y += moveY;
+    }
     
     marc.style.transform = `translate(${-x}px, ${-y}px)`;
     saveData()
