@@ -5,6 +5,8 @@ const marc = document.querySelector('.marc');
 const marcSize = marc.getBoundingClientRect();
 const notices = document.querySelector('.notices');
 const square = document.querySelectorAll('.square');
+const interface = document.querySelector('.interface');
+const chestInterface = document.querySelector('.chest-inventory');
 console.log(marcSize);
 
 //se declaran coordenadas de los ejes y cantidad de pasos
@@ -14,16 +16,18 @@ let step = 2;
 
 //se declara la variable que va a guardar los datos de el mundo
 let dataGameJSON = '';
-
 let grassCounter = 0;
 let treeCounter = 0;
 let tileCounter = 0;
+let chestCounter = 0;
 
+//se declara el objeto entities, donde se guardan todos los entes del juego 
 let entities = {
     box: box2,
     grass: [],
     bush: [],
     tree: [],
+    chest: [],
     collidable: [],
 
     createGrass() {
@@ -50,10 +54,6 @@ let entities = {
         treeElement.style.height = '100%';
         treeElement.style.width = '100%';
         treeElement.style.backgroundColor = 'brown';
-        treeElement.style.display = 'flex';
-        treeElement.style.justifyContent = 'center';
-        treeElement.style.alignItems = 'center';
-        treeElement.style.zIndex = '1'
 
         treeCounter++;
         treeElement.dataset.type = 'tree';
@@ -61,6 +61,20 @@ let entities = {
         this.collidable.push(treeElement);
         this.tree.push(treeElement);
     },
+
+    createChest() {
+        const chestElement = document.createElement('div');
+        chestElement.className = `chest${chestCounter}`;
+        chestElement.style.height = '100%';
+        chestElement.style.width = '100%';
+        chestElement.style.backgroundColor = 'rgba(182, 125, 60, 1)';
+
+        chestCounter++;
+        chestElement.dataset.type = 'chest';
+        document.querySelector('.grass138').appendChild(chestElement);
+        this.collidable.push(chestElement);
+        this.chest.push(chestElement);
+    }
 };
 //entities.collidable.push(entities.box);
 //entities.box.dataset.type = 'box';
@@ -93,6 +107,7 @@ function saveData() {
 
 };
 
+//función que genera el mapa
 function mapConstruction() {
     let tileIndex = 0;
     let squareIndex = 4;
@@ -118,9 +133,11 @@ function mapConstruction() {
     const box2Tile = document.querySelector('.grass0');
     box2Tile.appendChild(box2);
     entities.createTree();
+    entities.createChest();
 
 };
 
+//función de colisión
 function colliding(box, movex, movey) {
     const collidList = entities.collidable;//obtengo la lista de objetos con colisión
     // genero un bucle que coje el largo de la lista
@@ -142,10 +159,11 @@ function colliding(box, movex, movey) {
                 element: collidableObject
             };
         };
-    }
+    };
     return false;
-}
+};
 
+//función de detección de colisión
 function nearByObject(boxE, range) {
     const collidList = entities.collidable;//aquí copié la estructura del principio de la función colliding, no cambia mucho
 
@@ -162,12 +180,15 @@ function nearByObject(boxE, range) {
             console.log('estás estancado');
             return {
                 type: collidList[i].dataset.type //luego aquí lo que hago es devolver el tipo de objeto con el que voy a colisionar
-            }
-        }
-    }
-}
+            };
+        };
+    };
+};
 
-let keyChanges = [false/*w*/, false/*a*/, false/*s*/, false/*d*/];
+//aquí se define qué tecla se está pulsando y qué tecla no
+let keyChanges = [false/*w*/, false/*a*/, false/*s*/, false/*d*/, false/*e*/, false /*esc*/, false /*i*/];
+let inventoryOpen = false;
+let nearLy = '';
 
 //función que actualiza los datos por cada frame
 function gameLoop() {
@@ -220,20 +241,30 @@ function gameLoop() {
     }*/
 
     const collision = colliding(boxSize, moveX, moveY);
-    const nearly = nearByObject(boxSize, 40);
+    nearLy = nearByObject(boxSize, 40);
 
     if (collision) {//aquí compruebo si hay colisión
-    notices.style.display = 'block';
-    notices.innerHTML = `estás colisionando con un ${collision.type}`;
-    } else if(nearly) {//si no hay colisión comprueba si la va a haber y entonces saca aviso de "E para inventario" o en otro caso podría ser "peligro"
+
+    } else if (nearLy && nearLy.type == 'chest') {//si no hay colisión comprueba si la va a haber y entonces saca aviso de "E para inventario" o en otro caso podría ser "peligro"
+        
+        notices.style.display = 'block';
         notices.innerHTML = 'E para abrir inventario';
-        x += moveX;
-        y += moveY;
+        isNear = true;
+        if(inventoryOpen) {
+            console.log('nada');
+        } else {
+            x += moveX;
+            y += moveY;
+        };
+
     } else {// si no hay nada con que pueda colisionar sigue andando
+
         notices.style.display = 'none';
+        isNear = false;
         x += moveX;
         y += moveY;
-    }
+
+    };
 
     marc.style.transform = `translate(${-x}px, ${-y}px)`;
     saveData();
@@ -253,14 +284,44 @@ document.addEventListener('keydown', (event) => {
         'arrowleft' ||
         'arrowdown' ||
         'arrowright'
+
     ) {
+
         event.preventDefault();
+
     };
 
-    if(key === 'w' || key === 'arrowup') {keyChanges[0] = true;}
-    else if(key === 'a' || key === 'arrowleft') {keyChanges[1] = true;}
-    else if(key === 's' || key === 'arrowdown') {keyChanges[2] = true;}
-    else if(key === 'd' || key === 'arrowright') {keyChanges[3] = true;};
+    if(key === 'e' && nearLy ) {
+
+        interface.style.display = 'block';
+        box.style.display = 'none';
+        inventoryOpen = true;
+
+        if(nearLy.type === 'chest') {
+            chestInterface.style.display = 'block';
+        }
+
+    };
+
+    if(!inventoryOpen) {
+
+        if(key === 'w' || key === 'arrowup') {keyChanges[0] = true;}
+        else if (key === 'a' || key === 'arrowleft') {keyChanges[1] = true;}
+        else if (key === 's' || key === 'arrowdown') {keyChanges[2] = true;}
+        else if (key === 'd' || key === 'arrowright') {keyChanges[3] = true;}
+        else if (key === 'e') {keyChanges[4] = true}
+        else if (key === 'escape') {keyChanges[5] = true}
+        else if (key === 'i') {keyChanges[6] = true}
+
+    } else {
+
+        if(key === 'escape') {
+            interface.style.display = 'none';
+            box.style.display = 'block';
+            inventoryOpen = false;
+        };
+
+    };
 
 });
 
@@ -268,10 +329,11 @@ document.addEventListener('keydown', (event) => {
 document.addEventListener('keyup', (event) => {
 
     const key = event.key.toLowerCase();
-    if(key === 'arrowup' ||
-        'arrowleft' ||
-        'arrowdown' ||
-        'arrowright'
+    if(key === 'arrowup' || 
+        key ==='arrowleft' || 
+        key ==='arrowdown' || 
+        key ==='arrowright'
+
     ) {
         event.preventDefault();
     };
@@ -279,6 +341,9 @@ document.addEventListener('keyup', (event) => {
     if(key === 'w' || key == 'arrowup') {keyChanges[0] = false;} 
     else if (key === 'a' || key === 'arrowleft') {keyChanges[1] = false;}
     else if (key === 's' || key === 'arrowdown') {keyChanges[2] = false;}
-    else if (key === 'd' || key === 'arrowright') {keyChanges[3] = false;};
+    else if (key === 'd' || key === 'arrowright') {keyChanges[3] = false;}
+    else if (key === 'e') {keyChanges[4] = false}
+    else if (key === 'escape') keyChanges[5] = false
+    else if (key === 'i') {keyChanges[6] = false}
 
 });
