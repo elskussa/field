@@ -38,6 +38,7 @@ let entities = {
         grassElement.style.alignItems = 'center';
         
         grassCounter++;
+        grassElement.dataset.type = 'grass';
         document.querySelector(`.tile-${tileCounter}`).appendChild(grassElement);
         tileCounter++;
         this.grass.push(grassElement);
@@ -55,12 +56,14 @@ let entities = {
         treeElement.style.zIndex = '1'
 
         treeCounter++;
+        treeElement.dataset.type = 'tree';
         document.querySelector('.grass149').appendChild(treeElement)
         this.collidable.push(treeElement);
         this.tree.push(treeElement);
     },
 };
-//entities.collidable.push(entities.box)
+//entities.collidable.push(entities.box);
+//entities.box.dataset.type = 'box';
 
 document.addEventListener('DOMContentLoaded', () => {
     //aquí se cargan los datos de el mundo
@@ -72,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
         y = dataSaved.pos.posSavedy;
         console.log('datos cargados');
 
-    }
+    };
 
 });
 
@@ -107,34 +110,62 @@ function mapConstruction() {
             tile.style.justifyContent = 'center';
             tile.style.alignItems = 'center';
 
-            square[s].appendChild(tile)
+            square[s].appendChild(tile);
             tileIndex++;
-            entities.createGrass()
+            entities.createGrass();
         };
     };
     const box2Tile = document.querySelector('.grass0');
-    box2Tile.appendChild(box2)
-    entities.createTree()
+    box2Tile.appendChild(box2);
+    entities.createTree();
 
 };
 
 function colliding(box, movex, movey) {
-    const collidList = entities.collidable;
-    for (i = 0; i < collidList.length; i++) {
-        const collidableObject = collidList[i];
-        const rect = collidableObject.getBoundingClientRect();
+    const collidList = entities.collidable;//obtengo la lista de objetos con colisión
+    // genero un bucle que coje el largo de la lista
+    for (let i = 0; i < collidList.length; i++) { 
+        const collidableObject = collidList[i];//obtengo el objeto actual de la lista con el que estoy colisionando
+        const rect = collidableObject.getBoundingClientRect()//de el objeto actual con el que estoy colisionando saco sus dimensiones
 
+        //aquí verifico si estoy colisionando con el objeto
         const isColliding = 
         box.right + (movex + 2) > rect.left && 
         box.left + (movex - 2) < rect.right && 
         box.top + (movey - 2) < rect.bottom && 
         box.bottom + (movey + 2) > rect.top
 
-        if(isColliding) return true;
+        //si estoy colisionando con el objeto devuelve un objeto que contiene el elemento del DOM y el tipo de objeto con el que estoy colisionando
+        if(isColliding) {
+            return { //no sabía que se podía hacer esto
+                type: collidableObject.dataset.type || null,
+                element: collidableObject
+            };
+        };
     }
     return false;
 }
 
+function nearByObject(boxE, range) {
+    const collidList = entities.collidable;//aquí copié la estructura del principio de la función colliding, no cambia mucho
+
+    for(let i = 0; i < collidList.length; i++) {//hice lo mismo que colliding
+        const collidableObject = collidList[i];
+        const rect = collidableObject.getBoundingClientRect();
+
+        //aquí ya lo que hago es medir el centro de cada objeto, tanto el objeto en movimiento como el que va a colisionar y mido su punto medio y sacar la distancia entre estos
+        const dx = Math.abs(boxE.left + boxE.width/2 - (rect.left + rect.width/2));
+        const dy = Math.abs(boxE.top + boxE.height/2 - (rect.top + rect.height/2));
+
+        //luego aquí lo que hago es ver si la distancia de los objetos es menor al rango de detección de el objeto rect(que es el arbol...etc)
+        if(dx < rect.width/2 + range && dy < rect.height/2 + range) {
+            console.log('estás estancado');
+            return {
+                type: collidList[i].dataset.type //luego aquí lo que hago es devolver el tipo de objeto con el que voy a colisionar
+            }
+        }
+    }
+}
 
 let keyChanges = [false/*w*/, false/*a*/, false/*s*/, false/*d*/];
 
@@ -142,7 +173,6 @@ let keyChanges = [false/*w*/, false/*a*/, false/*s*/, false/*d*/];
 function gameLoop() {
 
     const boxSize = box.getBoundingClientRect();
-    const box2Size = box2.getBoundingClientRect();
     const marcSize2 = marc.getBoundingClientRect();
     const maxAreaX = (marcSize2.width - boxSize.width) / 2;
     const maxAreaY = (marcSize2.height - boxSize.height) / 2;
@@ -190,43 +220,27 @@ function gameLoop() {
     }*/
 
     const collision = colliding(boxSize, moveX, moveY);
-    
-    //costante de colisión
-    /*const collid = 
-        boxSizeProbe.right + (moveX + 2) > boxSize2Probe.left && 
-        boxSizeProbe.left + (moveX -2) < boxSize2Probe.right && 
-        boxSizeProbe.top + (moveY - 2) < boxSize2Probe.bottom && 
-        boxSizeProbe.bottom + (moveY + 2) > boxSize2Probe.top;
+    const nearly = nearByObject(boxSize, 40);
 
-    if(collision) { // hay que hacer ostro sistema diferente, que funcione igual pero con rebote, no sirve este
-        notices.style.display = 'block';
-        console.log("colisionas");
-        //aquí se puede meter un if el cual te permita moverte unos px más para así se quede activo el "colision" y poder acceder a inventario si lo hay
-    } else {
-        notices.style.display = 'none';
-        notices.innerHTML = 'presiona E para acceder al inventario'
+    if (collision) {//aquí compruebo si hay colisión
+    notices.style.display = 'block';
+    notices.innerHTML = `estás colisionando con un ${collision.type}`;
+    } else if(nearly) {//si no hay colisión comprueba si la va a haber y entonces saca aviso de "E para inventario" o en otro caso podría ser "peligro"
+        notices.innerHTML = 'E para abrir inventario';
         x += moveX;
         y += moveY;
-
-    };*/
-
-    if(collision) {
-        notices.style.display = 'block';
-        console.log("colisionas");
-        notices.innerHTML = 'presiona E para acceder al inventario'
-        //x += moveX;
-        //y += moveY;
-    } else {
+    } else {// si no hay nada con que pueda colisionar sigue andando
         notices.style.display = 'none';
         x += moveX;
         y += moveY;
     }
-    
+
     marc.style.transform = `translate(${-x}px, ${-y}px)`;
-    saveData()
+    saveData();
     requestAnimationFrame(gameLoop);
 
 };
+
 
 //iniciar el game loop
 gameLoop();
