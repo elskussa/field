@@ -1,13 +1,13 @@
 //se declaran los elementos de el DOM
-const box = document.querySelector('.box');
-const box2 = document.querySelector('.box2');
-const marc = document.querySelector('.marc');
-const marcSize = marc.getBoundingClientRect();
-const notices = document.querySelector('.notices');
-const square = document.querySelectorAll('.square');
-const interface = document.querySelector('.interface');
-const chestInterface = document.querySelector('.chest-inventory');
-console.log(marcSize);
+const box = document.querySelector( '.box' ); // personaje
+const box2 = document.querySelector( '.box2' );
+const marc = document.querySelector( '.marc' );
+const notices = document.querySelector( '.notices' );
+const square = document.querySelectorAll( '.square' );
+const interface = document.querySelector( '.interface' );
+const chestInterface = document.querySelector( '.chest-inventory' );
+const inventory = document.querySelector( '.inventory' );
+const settingsInterface = document.querySelector( '.settings' );
 
 //se declaran coordenadas de los ejes y cantidad de pasos
 let x = 0;
@@ -20,35 +20,41 @@ let grassCounter = 0;
 let treeCounter = 0;
 let tileCounter = 0;
 let chestCounter = 0;
+let scytheCounter = 0;
+let arableGrassCounter = 0;
 
-//se declara el objeto entities, donde se guardan todos los entes del juego 
-let entities = {
-    box: box2,
+
+//se declara la lista collidable
+let collidable = [];
+//se declara la lista de arable
+let arable = [];
+//se declara el objeto objects, donde se guardan todos los objetos de el juego
+let objects = {
+
     grass: [],
-    bush: [],
     tree: [],
     chest: [],
-    collidable: [],
+    scythe: [],
 
-    createGrass() {
+    createGrass( index ) {
 
         const grassElement = document.createElement('div');
         grassElement.className = `grass${grassCounter}`;
         grassElement.style.height = '100%';
         grassElement.style.width = '100%';
         grassElement.style.backgroundColor = 'rgba(0, 226, 75, 1)';
-        grassElement.style.display = 'flex';
-        grassElement.style.justifyContent = 'center';
-        grassElement.style.alignItems = 'center';
-        
-        grassCounter++;
+
         grassElement.dataset.type = 'grass';
-        document.querySelector(`.tile-${tileCounter}`).appendChild(grassElement);
-        tileCounter++;
+        grassElement.dataset.arableYet = 'false';
+        document.querySelector( `.tile-${index}` ).appendChild(grassElement);
+        grassCounter++;
         this.grass.push(grassElement);
+        arable.push(grassElement)
+
     },
 
     createTree() {
+
         const treeElement = document.createElement('div');
         treeElement.className = `tree${treeCounter}`;
         treeElement.style.height = '100%';
@@ -57,12 +63,14 @@ let entities = {
 
         treeCounter++;
         treeElement.dataset.type = 'tree';
-        document.querySelector('.grass149').appendChild(treeElement)
-        this.collidable.push(treeElement);
+        document.querySelector( '.grass149' ).appendChild(treeElement)
+        collidable.push(treeElement);
         this.tree.push(treeElement);
+
     },
 
     createChest() {
+
         const chestElement = document.createElement('div');
         chestElement.className = `chest${chestCounter}`;
         chestElement.style.height = '100%';
@@ -71,23 +79,49 @@ let entities = {
 
         chestCounter++;
         chestElement.dataset.type = 'chest';
-        document.querySelector('.grass138').appendChild(chestElement);
-        this.collidable.push(chestElement);
+        document.querySelector( '.grass138' ).appendChild(chestElement);
+        collidable.push(chestElement);
         this.chest.push(chestElement);
+
+    },
+
+    createScythe() {
+
+        const scytheElement = document.createElement('div');
+        scytheElement.className = `scythe${scytheCounter}`;
+        scytheElement.style.height = '100%';
+        scytheElement.style.width = '100%';
+        scytheElement.style.backgroundColor = 'rgba(143, 93, 37, 1)';
+
+        scytheCounter++;
+        scytheElement.dataset.type = 'scythe';
+        document.querySelector( '.item-gui-1' ).appendChild(scytheElement);
+        collidable.push(scytheElement);
+        this.scythe.push(scytheElement);
+
     }
+};
+
+//se declara el objeto entities, donde se guardan todos los entes del juego
+let entities = {
+
+    box2: box2,
+    box: box
+
 };
 //entities.collidable.push(entities.box);
 //entities.box.dataset.type = 'box';
+collidable.push(entities.box2)
 
 document.addEventListener('DOMContentLoaded', () => {
     //aquí se cargan los datos de el mundo
     mapConstruction()
-    const dataSaved = JSON.parse(localStorage.getItem('dataGame'))
+    const dataSaved = JSON.parse(localStorage.getItem( 'dataGame' ))
     
-    if(dataSaved && dataSaved.pos) {
+    if( dataSaved && dataSaved.pos ) {
         x = dataSaved.pos.posSavedX;
         y = dataSaved.pos.posSavedy;
-        console.log('datos cargados');
+        console.log( 'datos cargados' );
 
     };
 
@@ -102,70 +136,85 @@ function saveData() {
             posSavedy : y
         }
     };
+
     dataGameJSON = JSON.stringify(data)
-    localStorage.setItem('dataGame', dataGameJSON);
+    localStorage.setItem( 'dataGame' , dataGameJSON);
 
 };
 
 //función que genera el mapa
 function mapConstruction() {
+
     let tileIndex = 0;
     let squareIndex = 4;
-    for(s=0; s < squareIndex; s++) {
+
+    for( s=0; s < squareIndex; s++ ) {
+
         for(i = 0; i < 49; i++) {
+
             const tile = document.createElement('div');
             tile.className = `tile-${tileIndex}`;
             tile.style.height = '55px';
             tile.style.width = '55px';
             //tile.style.border = '1px solid gray'; esto añade tamaño al tile, lo que ocasiona que se desborde del marc
             //tile.style.outline = '1px solid gray';
-            tile.style.border = 'none';
-            tile.style.outline = 'none';
             tile.style.display = 'flex';
             tile.style.justifyContent = 'center';
             tile.style.alignItems = 'center';
 
             square[s].appendChild(tile);
+            objects.createGrass( tileIndex );
             tileIndex++;
-            entities.createGrass();
+
         };
+
     };
-    const box2Tile = document.querySelector('.grass0');
+
+    const box2Tile = document.querySelector( '.grass0' );
     box2Tile.appendChild(box2);
-    entities.createTree();
-    entities.createChest();
+    objects.createTree();
+    objects.createChest();
+    objects.createScythe();
 
 };
 
 //función de colisión
-function colliding(box, movex, movey) {
-    const collidList = entities.collidable;//obtengo la lista de objetos con colisión
+function colliding( box, movex, movey ) {
+
+    const collidList = collidable;//obtengo la lista de objetos con colisión
     // genero un bucle que coje el largo de la lista
-    for (let i = 0; i < collidList.length; i++) { 
+
+    for (let i = 0; i < collidList.length; i++) {
+
         const collidableObject = collidList[i];//obtengo el objeto actual de la lista con el que estoy colisionando
         const rect = collidableObject.getBoundingClientRect()//de el objeto actual con el que estoy colisionando saco sus dimensiones
 
         //aquí verifico si estoy colisionando con el objeto
         const isColliding = 
-        box.right + (movex + 2) > rect.left && 
-        box.left + (movex - 2) < rect.right && 
-        box.top + (movey - 2) < rect.bottom && 
-        box.bottom + (movey + 2) > rect.top
+        box.right + ( movex + 2 ) > rect.left && 
+        box.left + ( movex - 2 ) < rect.right && 
+        box.top + ( movey - 2 ) < rect.bottom && 
+        box.bottom + ( movey + 2 ) > rect.top 
 
         //si estoy colisionando con el objeto devuelve un objeto que contiene el elemento del DOM y el tipo de objeto con el que estoy colisionando
-        if(isColliding) {
-            return { //no sabía que se podía hacer esto
+        if( isColliding ) {
+
+            return {//no sabía que se podía hacer esto
+
                 type: collidableObject.dataset.type || null,
                 element: collidableObject
+
             };
         };
+
     };
     return false;
 };
 
 //función de detección de colisión
 function nearByObject(boxE, range) {
-    const collidList = entities.collidable;//aquí copié la estructura del principio de la función colliding, no cambia mucho
+    const collidList = collidable;//aquí copié la estructura del principio de la función colliding, no cambia mucho
+    const arableList = arable;
 
     for(let i = 0; i < collidList.length; i++) {//hice lo mismo que colliding
         const collidableObject = collidList[i];
@@ -179,7 +228,26 @@ function nearByObject(boxE, range) {
         if(dx < rect.width/2 + range && dy < rect.height/2 + range) {
             console.log('estás estancado');
             return {
-                type: collidList[i].dataset.type //luego aquí lo que hago es devolver el tipo de objeto con el que voy a colisionar
+                type: collidList[i].dataset.type, //luego aquí lo que hago es devolver el tipo de objeto con el que voy a colisionar
+                element: collidList[i],
+            };
+        };
+    };
+
+    for(let j = 0; j < arableList.length; j++) {//hice lo mismo que colliding
+        const arableObject = arableList[j];
+        const rect = arableObject.getBoundingClientRect();
+
+        //aquí ya lo que hago es medir el centro de cada objeto, tanto el objeto en movimiento como el que va a colisionar y mido su punto medio y sacar la distancia entre estos
+        const dx = Math.abs(boxE.left + boxE.width/2 - (rect.left + rect.width/2));
+        const dy = Math.abs(boxE.top + boxE.height/2 - (rect.top + rect.height/2));
+
+        //luego aquí lo que hago es ver si la distancia de los objetos es menor al rango de detección de el objeto rect(que es el arbol...etc)
+        if(dx < rect.width/2 + range && dy < rect.height/2 + range) {
+            console.log('posible arado');
+            return {
+                type: arableList[j].dataset.type, //luego aquí lo que hago es devolver el tipo de objeto con el que voy a colisionar
+                element: arableList[j],
             };
         };
     };
@@ -187,22 +255,30 @@ function nearByObject(boxE, range) {
 
 //aquí se define qué tecla se está pulsando y qué tecla no
 let keyChanges = [false/*w*/, false/*a*/, false/*s*/, false/*d*/, false/*e*/, false /*esc*/, false /*i*/];
+let interfaceOpen = false;
+let settingsOpen = false;
 let inventoryOpen = false;
+let chestInventoryOpen = false;
+let isArable = false;
+
+//
 let nearLy = '';
 
 //función que actualiza los datos por cada frame
 function gameLoop() {
 
     const boxSize = box.getBoundingClientRect();
-    const marcSize2 = marc.getBoundingClientRect();
-    const maxAreaX = (marcSize2.width - boxSize.width) / 2;
-    const maxAreaY = (marcSize2.height - boxSize.height) / 2;
+    const marcSize = marc.getBoundingClientRect();
+    const maxAreaX = ( marcSize.width - boxSize.width ) / 2;
+    const maxAreaY = ( marcSize.height - boxSize.height ) / 2;
+    const userItems = document.querySelector('.scythe0'); //la función que crea el objeto se llama 
 
     let moveX = 0;
     let moveY = 0;
  
-    if(localStorage.getItem('dataGame')) {
-        let lastGameData = localStorage.getItem('dataGame');
+    if( localStorage.getItem( 'dataGame' ) ) {
+
+        let lastGameData = localStorage.getItem( 'dataGame' );
         let GameData = JSON.parse(lastGameData)
         x = GameData.pos.posSavedx;
         y = GameData.pos.posSavedy;
@@ -210,13 +286,14 @@ function gameLoop() {
     };
     
     //calcular movimiento basado en teclas presionadas
-    if(keyChanges[0] && y > -maxAreaY) {moveY -= step} // w
-    if(keyChanges[2] && y < maxAreaY) {moveY += step} // s
-    if(keyChanges[1] && x > -maxAreaX) {moveX -= step} // a
-    if(keyChanges[3] && x < maxAreaX) {moveX += step} // d
+    if ( keyChanges[0] && y > -maxAreaY ) { moveY -= step } // w
+    if ( keyChanges[2] && y < maxAreaY ) { moveY += step } // s
+    if ( keyChanges[1] && x > -maxAreaX ) { moveX -= step } // a
+    if ( keyChanges[3] && x < maxAreaX ) { moveX += step } // d
     
     //normalizar movimiento diagonal
     if (moveX !== 0 && moveY !== 0) {
+
         moveX *= 0.7071;
         moveY *= 0.7071;
 
@@ -241,21 +318,32 @@ function gameLoop() {
     }*/
 
     const collision = colliding(boxSize, moveX, moveY);
-    nearLy = nearByObject(boxSize, 40);
+    nearLy = nearByObject( boxSize, 23 );
 
-    if (collision) {//aquí compruebo si hay colisión
+    if ( collision ) {//aquí compruebo si hay colisión
 
-    } else if (nearLy && nearLy.type == 'chest') {//si no hay colisión comprueba si la va a haber y entonces saca aviso de "E para inventario" o en otro caso podría ser "peligro"
+    } else if ( nearLy && nearLy.type == 'chest' ) {//si no hay colisión comprueba si la va a haber y entonces saca aviso de "E para inventario" o en otro caso podría ser "peligro"
         
         notices.style.display = 'block';
         notices.innerHTML = 'E para abrir inventario';
         isNear = true;
-        if(inventoryOpen) {
-            console.log('nada');
-        } else {
-            x += moveX;
-            y += moveY;
-        };
+
+        x += moveX;
+        y += moveY;
+
+    } else if ( nearLy && nearLy.type == 'grass' && userItems && nearLy.element.dataset.arableYet == 'false' ) {
+        notices.style.display = 'block';
+        notices.innerHTML = 'E para arar';
+
+        x += moveX;
+        y += moveY;
+
+    } else if ( nearLy && nearLy.type == 'grass' && userItems && nearLy.element.dataset.arableYet == 'true' ) {
+
+        notices.style.display = 'block';
+        notices.innerHTML = 'E para deshacer el arado';
+        x += moveX;
+        y += moveY;
 
     } else {// si no hay nada con que pueda colisionar sigue andando
 
@@ -272,7 +360,6 @@ function gameLoop() {
 
 };
 
-
 //iniciar el game loop
 gameLoop();
 
@@ -280,7 +367,7 @@ gameLoop();
 document.addEventListener('keydown', (event) => {
 
     const key = event.key.toLowerCase();
-    if(key === 'arrowup' ||
+    if ( key === 'arrowup' ||
         'arrowleft' ||
         'arrowdown' ||
         'arrowright'
@@ -291,35 +378,86 @@ document.addEventListener('keydown', (event) => {
 
     };
 
-    if(key === 'e' && nearLy ) {
+    if ( nearLy && nearLy && key === 'e' ) {
 
-        interface.style.display = 'block';
-        box.style.display = 'none';
-        inventoryOpen = true;
+        if ( nearLy && nearLy.type == 'chest' ) {
 
-        if(nearLy.type === 'chest') {
+            notices.style.display = 'block';
+            notices.innerHTML = 'E para abrir inventario';
             chestInterface.style.display = 'block';
+            chestInventoryOpen = true;
+
+            if ( chestInventoryOpen ) {
+
+                interface.style.display = 'block';
+                interfaceOpen = true;
+                notices.style.display = 'none';
+                box.style.display = 'none';
+
+            };
+
+        } else if ( nearLy && nearLy.type == 'grass' && nearLy.element.dataset.arableYet == 'false' && key == 'e' ) {
+
+            nearLy.element.style.backgroundColor = 'rgba(77, 51, 22, 1)';
+            nearLy.element.dataset.arableYet = 'true';
+
+        } else if ( nearLy && nearLy.type == 'grass' && nearLy.element.dataset.arableYet == 'true' && key == 'e' ) {
+            nearLy.element.style.backgroundColor = 'rgba(0, 226, 75, 1)';
+            nearLy.element.dataset.arableYet = 'false';
         }
 
     };
 
-    if(!inventoryOpen) {
+    if ( !inventoryOpen && key === 'i' ) {
 
-        if(key === 'w' || key === 'arrowup') {keyChanges[0] = true;}
-        else if (key === 'a' || key === 'arrowleft') {keyChanges[1] = true;}
-        else if (key === 's' || key === 'arrowdown') {keyChanges[2] = true;}
-        else if (key === 'd' || key === 'arrowright') {keyChanges[3] = true;}
-        else if (key === 'e') {keyChanges[4] = true}
-        else if (key === 'escape') {keyChanges[5] = true}
-        else if (key === 'i') {keyChanges[6] = true}
+        interface.style.display = 'block';
+        inventory.style.display = 'block';
+        box.style.display = 'none';
+        interfaceOpen = open;
+        inventoryOpen = true;
 
-    } else {
+    }
 
-        if(key === 'escape') {
-            interface.style.display = 'none';
-            box.style.display = 'block';
+    if ( key === 'escape' && !interfaceOpen ) {
+
+        interface.style.display = 'block';
+        settingsInterface.style.display = 'block';
+        box.style.display = 'none';
+        interfaceOpen = true;
+        settingsOpen = true;
+
+    } else if ( key === 'escape' && interfaceOpen ) {
+
+        settingsInterface.style.display = 'none';
+
+        if ( inventoryOpen ) {
+
+            inventory.style.display = 'none';
             inventoryOpen = false;
-        };
+
+        } else if ( chestInventoryOpen ) {
+
+            chestInterface.style.display = 'none';
+            chestInventoryOpen = false;
+
+        }
+
+        interface.style.display = 'none';
+        box.style.display = 'block';
+        interfaceOpen = false;
+        settingsOpen = false;
+
+    };
+
+    if ( !interfaceOpen ) {
+
+        if ( key === 'w' || key === 'arrowup' ) {keyChanges[0] = true;}
+        else if ( key === 'a' || key === 'arrowleft' ) {keyChanges[1] = true;}
+        else if ( key === 's' || key === 'arrowdown' ) {keyChanges[2] = true;}
+        else if ( key === 'd' || key === 'arrowright' ) {keyChanges[3] = true;}
+        else if ( key === 'e' ) {keyChanges[4] = true}
+        else if ( key === 'escape' ) {keyChanges[5] = true}
+        else if ( key === 'i' ) {keyChanges[6] = true}
 
     };
 
@@ -329,7 +467,8 @@ document.addEventListener('keydown', (event) => {
 document.addEventListener('keyup', (event) => {
 
     const key = event.key.toLowerCase();
-    if(key === 'arrowup' || 
+
+    if (key === 'arrowup' || 
         key ==='arrowleft' || 
         key ==='arrowdown' || 
         key ==='arrowright'
@@ -339,11 +478,11 @@ document.addEventListener('keyup', (event) => {
     };
 
     if(key === 'w' || key == 'arrowup') {keyChanges[0] = false;} 
-    else if (key === 'a' || key === 'arrowleft') {keyChanges[1] = false;}
-    else if (key === 's' || key === 'arrowdown') {keyChanges[2] = false;}
-    else if (key === 'd' || key === 'arrowright') {keyChanges[3] = false;}
-    else if (key === 'e') {keyChanges[4] = false}
-    else if (key === 'escape') keyChanges[5] = false
-    else if (key === 'i') {keyChanges[6] = false}
+    else if ( key === 'a' || key === 'arrowleft' ) {keyChanges[1] = false;}
+    else if ( key === 's' || key === 'arrowdown' ) {keyChanges[2] = false;}
+    else if ( key === 'd' || key === 'arrowright' ) {keyChanges[3] = false;}
+    else if ( key === 'e' ) {keyChanges[4] = false}
+    else if ( key === 'escape' ) keyChanges[5] = false
+    else if ( key === 'i' ) {keyChanges[6] = false}
 
 });
